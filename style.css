@@ -1,0 +1,30 @@
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background: #f2f5f7;
+  color: #222;
+  padding: 1rem;
+}
+header {
+  display: flex; align-items: center; margin-bottom: 1rem;
+}
+header img { height: 50px; margin-right: 1rem; }
+header h1 { font-size: 1.8rem; color: #0b2d5b; }
+
+.big-chart, .dg-chart {
+  background: #fff;
+  padding:1rem; border-radius:8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  margin-bottom: 1rem;
+}
+
+.dg-charts {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+@media(max-width:600px) {
+  header { flex-direction: column; text-align: center; }
+  .dg-charts { grid-template-columns: 1fr; }
+}
