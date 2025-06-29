@@ -1,4 +1,4 @@
-// parâmetros fixos
+// constantes de configuração
 const DATE_START = 2015, DATE_END = 2025;
 const Y_MIN = 180, Y_MAX = 250;
 const BP_DATE = '2021-11-01';
@@ -12,24 +12,24 @@ const OVERHAUL = {
   'DG#22':'2019-03-14','DG#23':'2016-05-02'
 };
 
-// função para cor da barra
+// define cor com base no valor
 function corBarra(v){
-  if(v<196||v>216) return 'red';
-  if(v>206) return 'yellow';
+  if(v < 196 || v > 216) return 'red';
+  if(v > 206)          return 'yellow';
   return 'green';
 }
 
-// carrega CSV e dispara o build
+// lê o CSV e aciona construção dos gráficos
 Papa.parse('data.csv', {
   download: true,
   header: true,
   dynamicTyping: true,
   skipEmptyLines: true,
   complete: ({ data })=>{
-    // filtra ano e coluna F entre 195 e 240
+    // filtra ano e consumo (col F)
     const rows = data.filter(r=>{
       const ano = new Date(r.B).getFullYear();
-      return ano>=DATE_START && ano<=DATE_END && r.F>=195 && r.F<=240;
+      return ano >= DATE_START && ano <= DATE_END && r.F >= 195 && r.F <= 240;
     });
     buildMainChart(rows);
     buildDGCharts(rows);
@@ -37,86 +37,109 @@ Papa.parse('data.csv', {
 });
 
 function buildMainChart(rows){
-  // agrupa por data
   const map = {};
   rows.forEach(r=>{
     const d = r.B.slice(0,10);
-    if(!map[d]) map[d]={F:[],D:0,C:new Set()};
+    if(!map[d]) map[d] = {F: [], D: 0, C: new Set()};
     map[d].F.push(r.F);
-    map[d].D+=r.D;
+    map[d].D += r.D;
     map[d].C.add(r.C);
   });
-  const dates = Object.keys(map).sort();
-  const y = dates.map(d=>{
-    const arr = map[d].F;
-    return arr.reduce((a,b)=>a+b,0)/arr.length;
-  });
-  const colors = y.map(corBarra);
-  const text = y.map(v=>v.toFixed(1));
 
-  const custom = dates.map(d=>({
+  const dates = Object.keys(map).sort();
+  const y     = dates.map(d=> map[d].F.reduce((a,b)=>a+b,0) / map[d].F.length );
+  const colors= y.map(corBarra);
+  const text  = y.map(v=> v.toFixed(1));
+  const custom= dates.map(d=> ({
     maquinas: map[d].C.size,
     geracao: map[d].D/1000
   }));
 
   const trace = {
-    x: dates, y, type:'bar', marker:{color:colors},
+    x: dates, y, type:'bar',
+    marker:{ color: colors },
     text, textposition:'outside',
     hovertemplate:
       '%{x}<br>Consumo: %{y:.1f}<br>' +
       'Máquinas: %{customdata.maquinas}<br>' +
-      'Geração: %{customdata.geracao:.2f}MWh<extra></extra>',
+      'Geração: %{customdata.geracao:.2f} MWh<extra></extra>',
     customdata: custom
   };
   const layout = {
     title:'Consumo específico UTE Pernambuco 3',
-    yaxis:{range:[Y_MIN,Y_MAX]},
+    yaxis:{ range: [Y_MIN, Y_MAX] },
     shapes:[{
-      type:'line', x0:BP_DATE, x1:BP_DATE,
-      y0:Y_MIN, y1:Y_MAX,
-      line:{color:'blue',dash:'dot'}
+      type:'line', x0: BP_DATE, x1: BP_DATE,
+      y0: Y_MIN, y1: Y_MAX,
+      line:{ color:'blue', dash:'dot' }
     }]
   };
-  Plotly.newPlot('main-chart',[trace],layout,{responsive:true});
+
+  Plotly.newPlot('main-chart', [trace], layout, { responsive: true });
 }
 
 function buildDGCharts(rows){
   const container = document.getElementById('dg-charts');
-  // agrupa por DG
   const byDG = {};
   rows.forEach(r=>{
-    if(!byDG[r.C]) byDG[r.C]=[];
+    if(!byDG[r.C]) byDG[r.C] = [];
     byDG[r.C].push(r);
   });
+
   Object.keys(byDG).sort().forEach(dg=>{
-    const arr = byDG[dg];
+    // cria o card
+    const details = document.createElement('details');
+    details.className = 'dg-card';
+
+    const summary = document.createElement('summary');
+    summary.textContent = dg;
+    details.appendChild(summary);
+
+    const chartDiv = document.createElement('div');
+    chartDiv.id = `chart-${dg}`;
+    chartDiv.className = 'dg-chart';
+    details.appendChild(chartDiv);
+
+    container.appendChild(details);
+
+    // dados do gráfico
+    const arr   = byDG[dg];
     const dates = arr.map(r=>r.B.slice(0,10));
     const vals  = arr.map(r=>r.E);
     const colors= vals.map(corBarra);
-    const div = document.createElement('div');
-    div.className = 'dg-chart';
-    div.id = `chart-${dg}`;
-    container.appendChild(div);
 
     const trace = {
-      x:dates, y:vals, type:'bar', marker:{color:colors},
-      text:vals.map(v=>v.toFixed(1)), textposition:'outside'
+      x: dates, y: vals, type: 'bar',
+      marker:{ color: colors },
+      text: vals.map(v=>v.toFixed(1)),
+      textposition: 'outside'
     };
+
+    // shapes de referência
     const shapes = [{
-      type:'line', x0:BP_DATE, x1:BP_DATE,
-      y0:Y_MIN, y1:Y_MAX, line:{color:'blue',dash:'dot'}
+      type:'line', x0: BP_DATE, x1: BP_DATE,
+      y0: Y_MIN, y1: Y_MAX,
+      line:{ color:'blue', dash:'dot' }
     }];
     if(OVERHAUL[dg]){
       shapes.push({
-        type:'line', x0:OVERHAUL[dg], x1:OVERHAUL[dg],
-        y0:Y_MIN, y1:Y_MAX, line:{color:'green',dash:'dash'}
+        type:'line', x0: OVERHAUL[dg], x1: OVERHAUL[dg],
+        y0: Y_MIN, y1: Y_MAX,
+        line:{ color:'green', dash:'dash' }
       });
     }
+
     const layout = {
-      title:`Consumo específico ${dg}`,
-      yaxis:{range:[Y_MIN,Y_MAX]}
+      title: `Consumo específico ${dg}`,
+      yaxis: { range: [Y_MIN, Y_MAX] },
+      shapes
     };
-    layout.shapes = shapes;
-    Plotly.newPlot(div.id,[trace],layout,{responsive:true});
+
+    // desenha só ao expandir o card
+    details.addEventListener('toggle', ()=>{
+      if(details.open && !chartDiv.hasChildNodes()){
+        Plotly.newPlot(chartDiv.id, [trace], layout, { responsive: true });
+      }
+    });
   });
 }
