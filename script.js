@@ -1,22 +1,31 @@
 
 document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('details').forEach((section) => {
-    const plotDiv = section.querySelector('.plot-container div');
+    const plotDiv = section.querySelector('.plot-container div[id^="grafico"]');
     if (!plotDiv) return;
 
-    // Criar inputs de data
+    // Criar inputs de data com valores padrão
     const wrapper = document.createElement('div');
-    wrapper.style.marginBottom = '10px';
+    wrapper.className = 'filtro-datas';
 
+    const startLabel = document.createElement('label');
+    startLabel.innerHTML = '📅 Início: ';
     const start = document.createElement('input');
     start.type = 'date';
-    start.style.marginRight = '10px';
+    start.className = 'data-inicio';
+    start.value = '2015-01-01';
+    startLabel.appendChild(start);
 
+    const endLabel = document.createElement('label');
+    endLabel.innerHTML = '📅 Fim: ';
     const end = document.createElement('input');
     end.type = 'date';
+    end.className = 'data-fim';
+    end.value = '2025-12-31';
+    endLabel.appendChild(end);
 
-    wrapper.appendChild(start);
-    wrapper.appendChild(end);
+    wrapper.appendChild(startLabel);
+    wrapper.appendChild(endLabel);
     section.querySelector('.plot-container').prepend(wrapper);
 
     const originalData = JSON.parse(JSON.stringify(plotDiv.data));
