@@ -1,4 +1,4 @@
-// constantes de configuração
+// configurações
 const DATE_START = 2015, DATE_END = 2025;
 const Y_MIN = 180, Y_MAX = 250;
 const BP_DATE = '2021-11-01';
@@ -12,30 +12,28 @@ const OVERHAUL = {
   'DG#22':'2019-03-14','DG#23':'2016-05-02'
 };
 
-// define cor com base no valor
+// seleção de cores
 function corBarra(v){
   if(v < 196 || v > 216) return 'red';
   if(v > 206)          return 'yellow';
   return 'green';
 }
 
-// lê o CSV e aciona construção dos gráficos
+// carrega CSV
 Papa.parse('data.csv', {
-  download: true,
-  header: true,
-  dynamicTyping: true,
-  skipEmptyLines: true,
+  download: true, header: true, dynamicTyping: true, skipEmptyLines: true,
   complete: ({ data })=>{
-    // filtra ano e consumo (col F)
+    // filtra
     const rows = data.filter(r=>{
       const ano = new Date(r.B).getFullYear();
       return ano >= DATE_START && ano <= DATE_END && r.F >= 195 && r.F <= 240;
     });
     buildMainChart(rows);
-    buildDGCharts(rows);
+    initDGNav(rows);
   }
 });
 
+// 1) Gráfico principal
 function buildMainChart(rows){
   const map = {};
   rows.forEach(r=>{
@@ -45,15 +43,11 @@ function buildMainChart(rows){
     map[d].D += r.D;
     map[d].C.add(r.C);
   });
-
   const dates = Object.keys(map).sort();
   const y     = dates.map(d=> map[d].F.reduce((a,b)=>a+b,0) / map[d].F.length );
   const colors= y.map(corBarra);
   const text  = y.map(v=> v.toFixed(1));
-  const custom= dates.map(d=> ({
-    maquinas: map[d].C.size,
-    geracao: map[d].D/1000
-  }));
+  const custom= dates.map(d=> ({maquinas: map[d].C.size, geracao: map[d].D/1000}));
 
   const trace = {
     x: dates, y, type:'bar',
@@ -74,72 +68,70 @@ function buildMainChart(rows){
       line:{ color:'blue', dash:'dot' }
     }]
   };
-
   Plotly.newPlot('main-chart', [trace], layout, { responsive: true });
 }
 
-function buildDGCharts(rows){
-  const container = document.getElementById('dg-charts');
+// 2) Inicializa nav e primeiro gráfico DG
+function initDGNav(rows){
   const byDG = {};
   rows.forEach(r=>{
-    if(!byDG[r.C]) byDG[r.C] = [];
+    if(!byDG[r.C]) byDG[r.C]=[];
     byDG[r.C].push(r);
   });
+  const dgList = Object.keys(byDG).sort();
+  const nav = document.getElementById('dg-nav');
 
-  Object.keys(byDG).sort().forEach(dg=>{
-    // cria o card
-    const details = document.createElement('details');
-    details.className = 'dg-card';
-
-    const summary = document.createElement('summary');
-    summary.textContent = dg;
-    details.appendChild(summary);
-
-    const chartDiv = document.createElement('div');
-    chartDiv.id = `chart-${dg}`;
-    chartDiv.className = 'dg-chart';
-    details.appendChild(chartDiv);
-
-    container.appendChild(details);
-
-    // dados do gráfico
-    const arr   = byDG[dg];
-    const dates = arr.map(r=>r.B.slice(0,10));
-    const vals  = arr.map(r=>r.E);
-    const colors= vals.map(corBarra);
-
-    const trace = {
-      x: dates, y: vals, type: 'bar',
-      marker:{ color: colors },
-      text: vals.map(v=>v.toFixed(1)),
-      textposition: 'outside'
-    };
-
-    // shapes de referência
-    const shapes = [{
-      type:'line', x0: BP_DATE, x1: BP_DATE,
-      y0: Y_MIN, y1: Y_MAX,
-      line:{ color:'blue', dash:'dot' }
-    }];
-    if(OVERHAUL[dg]){
-      shapes.push({
-        type:'line', x0: OVERHAUL[dg], x1: OVERHAUL[dg],
-        y0: Y_MIN, y1: Y_MAX,
-        line:{ color:'green', dash:'dash' }
-      });
-    }
-
-    const layout = {
-      title: `Consumo específico ${dg}`,
-      yaxis: { range: [Y_MIN, Y_MAX] },
-      shapes
-    };
-
-    // desenha só ao expandir o card
-    details.addEventListener('toggle', ()=>{
-      if(details.open && !chartDiv.hasChildNodes()){
-        Plotly.newPlot(chartDiv.id, [trace], layout, { responsive: true });
-      }
+  dgList.forEach((dg, idx)=>{
+    const btn = document.createElement('button');
+    btn.textContent = dg;
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('.dg-nav button').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      renderDGChart(dg, byDG[dg]);
     });
+    nav.appendChild(btn);
+    // ativa o primeiro
+    if(idx===0) {
+      btn.classList.add('active');
+      renderDGChart(dg, byDG[dg]);
+    }
   });
+}
+
+// 3) Renderiza um DG específico no container
+function renderDGChart(dg, arr){
+  const container = document.getElementById('dg-chart-container');
+  container.innerHTML = '';     // limpa
+  const div = document.createElement('div');
+  div.id = `chart-${dg}`;
+  container.appendChild(div);
+
+  const dates = arr.map(r=>r.B.slice(0,10));
+  const vals  = arr.map(r=>r.E);
+  const colors= vals.map(corBarra);
+  const trace = {
+    x: dates, y: vals, type:'bar',
+    marker:{ color: colors },
+    text: vals.map(v=>v.toFixed(1)),
+    textposition: 'outside'
+  };
+  const shapes = [{
+    type:'line', x0: BP_DATE, x1: BP_DATE,
+    y0: Y_MIN, y1: Y_MAX,
+    line:{ color:'blue', dash:'dot' }
+  }];
+  if(OVERHAUL[dg]){
+    shapes.push({
+      type:'line', x0: OVERHAUL[dg], x1: OVERHAUL[dg],
+      y0: Y_MIN, y1: Y_MAX,
+      line:{ color:'green', dash:'dash' }
+    });
+  }
+  const layout = {
+    title: `Consumo específico ${dg}`,
+    yaxis: { range: [Y_MIN, Y_MAX] },
+    shapes
+  };
+
+  Plotly.newPlot(div.id, [trace], layout, { responsive: true });
 }
