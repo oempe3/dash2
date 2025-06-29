@@ -11,7 +11,7 @@ body {
 header {
   display: flex;
   align-items: center;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
 }
 header img {
   height: 50px;
@@ -31,55 +31,38 @@ header h1 {
   margin-bottom: 2rem;
 }
 
-/* container de cards DG */
-.dg-charts {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 1rem;
-  margin-top: 1rem;
-}
-
-/* cada card expansível */
-.dg-card {
+/* barra de botões DG */
+.dg-nav {
+  display: flex;
+  overflow-x: auto;
+  gap: 0.5rem;
+  padding: 0.5rem;
   background: #fff;
   border-radius: 8px;
   box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-  overflow: hidden;
+  margin-bottom: 1.5rem;
 }
-
-/* cabeçalho clicável */
-.dg-card > summary {
-  list-style: none;
-  padding: 0.75rem 1rem;
-  cursor: pointer;
-  font-weight: bold;
+.dg-nav button {
+  flex: none;
+  padding: 0.5rem 1rem;
   background: #0b2d5b;
   color: #fff;
-  user-select: none;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s;
 }
-/* hover */
-.dg-card > summary:hover {
+.dg-nav button.active {
   background: #123a75;
 }
 
-/* remove seta padrão e adiciona ícone */
-.dg-card > summary::-webkit-details-marker {
-  display: none;
-}
-.dg-card > summary::before {
-  content: '+';
-  display: inline-block;
-  width: 1rem;
-  margin-right: 0.5rem;
-  transition: transform .2s;
-}
-.dg-card[open] > summary::before {
-  content: '–';
-}
-
-/* área do gráfico dentro do card */
-.dg-chart {
-  padding: 0.5rem;
+/* container gráfico DG único */
+.dg-single-chart {
+  background: #fff;
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  min-height: 350px;
 }
 
 /* responsividade */
@@ -88,7 +71,8 @@ header h1 {
     flex-direction: column;
     text-align: center;
   }
-  .dg-charts {
-    grid-template-columns: 1fr;
+  .dg-nav {
+    flex-wrap: wrap;
+    justify-content: center;
   }
 }
