@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard UTE Pernambuco III</title>
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Plotly.js -->
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <!-- PapaParse para ler CSV -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+  <!-- seu código -->
+  <script defer src="script.js"></script>
+</head>
+<body>
+  <header>
+    <img src="logo.png" alt="Logo Pernambuco III">
+    <h1>Dashboard Consumo Específico</h1>
+  </header>
+  <main>
+    <!-- Gráfico principal -->
+    <section id="main-chart" class="big-chart"></section>
+    <!-- Pequenos gráficos DG#xx -->
+    <section id="dg-charts" class="dg-charts"></section>
+  </main>
+</body>
+</html>
