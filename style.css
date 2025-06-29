@@ -1,30 +1,94 @@
+/* reset básico */
 * { margin:0; padding:0; box-sizing:border-box; }
+
 body {
   font-family: 'Segoe UI', sans-serif;
   background: #f2f5f7;
   color: #222;
   padding: 1rem;
 }
-header {
-  display: flex; align-items: center; margin-bottom: 1rem;
-}
-header img { height: 50px; margin-right: 1rem; }
-header h1 { font-size: 1.8rem; color: #0b2d5b; }
 
-.big-chart, .dg-chart {
-  background: #fff;
-  padding:1rem; border-radius:8px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+header {
+  display: flex;
+  align-items: center;
   margin-bottom: 1rem;
 }
-
-.dg-charts {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1rem;
+header img {
+  height: 50px;
+  margin-right: 1rem;
+}
+header h1 {
+  font-size: 1.8rem;
+  color: #0b2d5b;
 }
 
+/* gráfico principal */
+.big-chart {
+  background: #fff;
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  margin-bottom: 2rem;
+}
+
+/* container de cards DG */
+.dg-charts {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+/* cada card expansível */
+.dg-card {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  overflow: hidden;
+}
+
+/* cabeçalho clicável */
+.dg-card > summary {
+  list-style: none;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  font-weight: bold;
+  background: #0b2d5b;
+  color: #fff;
+  user-select: none;
+}
+/* hover */
+.dg-card > summary:hover {
+  background: #123a75;
+}
+
+/* remove seta padrão e adiciona ícone */
+.dg-card > summary::-webkit-details-marker {
+  display: none;
+}
+.dg-card > summary::before {
+  content: '+';
+  display: inline-block;
+  width: 1rem;
+  margin-right: 0.5rem;
+  transition: transform .2s;
+}
+.dg-card[open] > summary::before {
+  content: '–';
+}
+
+/* área do gráfico dentro do card */
+.dg-chart {
+  padding: 0.5rem;
+}
+
+/* responsividade */
 @media(max-width:600px) {
-  header { flex-direction: column; text-align: center; }
-  .dg-charts { grid-template-columns: 1fr; }
+  header {
+    flex-direction: column;
+    text-align: center;
+  }
+  .dg-charts {
+    grid-template-columns: 1fr;
+  }
 }
